@@ -9,6 +9,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/Marattttt/newportfolio/chats"
 	"github.com/Marattttt/newportfolio/config"
 	"github.com/Marattttt/newportfolio/restapi"
 )
@@ -23,6 +24,8 @@ func main() {
 	}
 
 	printConfig(config.Conf)
+
+	chats.GlobalHub = chats.NewHub()
 
 	go func() {
 		server := restapi.Server(appCtx, config.Conf)

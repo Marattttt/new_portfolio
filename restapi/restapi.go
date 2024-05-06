@@ -16,6 +16,7 @@ func Server(ctx context.Context, conf *config.AppConfig) *http.Server {
 	useMiddleware(conf, router)
 
 	router.Handle("/", http.HandlerFunc(Test))
+	router.Get("/rooms/join", http.HandlerFunc(HandleRoomJoin))
 
 	listenOn := fmt.Sprintf("%s:%d", conf.Server.Host, conf.Server.Port)
 
@@ -28,4 +29,10 @@ func Server(ctx context.Context, conf *config.AppConfig) *http.Server {
 func Test(w http.ResponseWriter, r *http.Request) {
 	logger := httplog.LogEntry(r.Context())
 	chats.HandleEcho(w, r, logger)
+}
+
+func HandleRoomJoin(w http.ResponseWriter, r *http.Request) {
+	logger := httplog.LogEntry(r.Context())
+
+	chats.HandleRoomJoin(w, r, logger)
 }
