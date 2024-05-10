@@ -7,10 +7,10 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"slices"
 
 	"github.com/Marattttt/newportfolio/contracts"
 	"github.com/Marattttt/newportfolio/models"
+	"github.com/docker/distribution/uuid"
 	"nhooyr.io/websocket"
 )
 
@@ -36,9 +36,9 @@ func (h *Hub) Join(ctx context.Context, req models.RoomJoinRequest, conn *websoc
 			Id:      req.RoomId,
 			hub:     h,
 			logger:  slog.With(logger, slog.Int("roomId", req.RoomId)),
-			Clients: make([]Client, 0),
+			Clients: make(map[uuid.UUID]*Client),
 		}
-		room.Sender = EchoSender{
+		room.Sender = SimpleSender{
 			logger: room.logger,
 			room:   &room,
 		}
@@ -55,7 +55,7 @@ type Room struct {
 	Id      int
 	hub     *Hub
 	logger  *slog.Logger
-	Clients []Client
+	Clients map[uuid.UUID]*Client
 	Sender  MessageSender
 }
 
@@ -64,7 +64,7 @@ func NewRoom(hub *Hub, sender MessageSender) Room {
 		Id:      len(hub.Rooms),
 		hub:     hub,
 		logger:  slog.With(hub.logger, slog.Int("roomId", len(hub.Rooms))),
-		Clients: make([]Client, 0),
+		Clients: make(map[uuid.UUID]*Client),
 		Sender:  sender,
 	}
 }
@@ -72,23 +72,12 @@ func NewRoom(hub *Hub, sender MessageSender) Room {
 func (r *Room) Join(ctx context.Context, req models.RoomJoinRequest, conn *websocket.Conn) {
 	if r.Clients == nil {
 		r.logger.Debug("Creating new clients slice", slog.Int("roomId", r.Id))
-		r.Clients = make([]Client, 0)
+		r.Clients = make(map[uuid.UUID]*Client)
 	}
 
-	index := slices.IndexFunc(r.Clients, func(c Client) bool { return c.name == req.Name })
-	if index < 0 {
-		r.logger.Info("New client", slog.Int("roomId", r.Id), slog.Any("joinReq", req))
-		r.Clients = append(r.Clients, NewClient(req, r, conn))
-		index = len(r.Clients) - 1
-	} else {
-		r.logger.Info("Join request from a client member to the same roomm", slog.Int("roomId", r.Id), slog.Any("joinReq", req))
-		return
-	}
+	client := NewClient(req, r, conn)
+	r.Clients[client.id] = &client
 
-	if err := conn.Write(ctx, websocket.MessageText, []byte("start connection")); err != nil {
-		r.logger.Error("ehe", slog.String("err", err.Error()))
-	}
-	client := r.Clients[index]
 	r.logger.Info("Begin receiving messages from client", slog.Any("clientName", client.name))
 	if err := client.HandleSend(ctx); err != nil {
 		r.logger.Warn("Unexpected error from chat client", slog.String("err", err.Error()))
@@ -96,7 +85,7 @@ func (r *Room) Join(ctx context.Context, req models.RoomJoinRequest, conn *webso
 }
 
 type MessageSender interface {
-	Send(ctx context.Context, from *Client, msg *Message)
+	Send(ctx context.Context, from *Client, msg models.Message)
 }
 
 type EchoSender struct {
@@ -104,9 +93,30 @@ type EchoSender struct {
 	logger *slog.Logger
 }
 
-func (es EchoSender) Send(ctx context.Context, from *Client, msg *Message) {
+func (es EchoSender) Send(ctx context.Context, from *Client, msg models.Message) {
 	es.room.logger.Debug("New message", slog.Any("msg", msg))
 	for _, c := range es.room.Clients {
+		c.Receive(ctx, msg)
+	}
+}
+
+type SimpleSender struct {
+	room   *Room
+	logger *slog.Logger
+}
+
+func (ss SimpleSender) Send(ctx context.Context, from *Client, msg models.Message) {
+	ss.room.logger.Debug("New message", slog.Any("msg", msg))
+	for _, c := range ss.room.Clients {
+		if msg.To != nil {
+			if c.name != *msg.To {
+				continue
+			}
+		}
+		if msg.From == c.name {
+			continue
+		}
+
 		c.Receive(ctx, msg)
 	}
 }

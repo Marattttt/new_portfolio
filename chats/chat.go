@@ -10,20 +10,26 @@ import (
 	"sync"
 
 	"github.com/Marattttt/newportfolio/models"
+	"github.com/docker/distribution/uuid"
 	"nhooyr.io/websocket"
 )
 
-type Message struct {
-	FromId int     `json:"from"`
-	From   *Client `json:"-"`
-	Toid   int     `json:"to"`
-	To     *Client `json:"-"`
-	Text   *string `json:"text,omitempty"`
+type IncomingMessage struct {
+	Text string  `json:"text"`
+	To   *string `json:"to"`
+}
+
+func (im IncomingMessage) ToMsg(from string) models.Message {
+	return models.Message{
+		From: from,
+		Text: im.Text,
+		To:   im.To,
+	}
 }
 
 type Client struct {
 	// Client id in a room
-	id int
+	id uuid.UUID
 
 	// The room the client is attached to
 	room *Room
@@ -34,12 +40,12 @@ type Client struct {
 	// The coonnection the client is attached to
 	conn *websocket.Conn
 
-	sendMu *sync.Mutex
+	sendMu sync.Mutex
 }
 
 func NewClient(req models.RoomJoinRequest, room *Room, conn *websocket.Conn) Client {
 	return Client{
-		id:   len(room.Clients),
+		id:   uuid.Generate(),
 		room: room,
 		name: req.Name,
 		conn: conn,
@@ -47,7 +53,7 @@ func NewClient(req models.RoomJoinRequest, room *Room, conn *websocket.Conn) Cli
 }
 
 func (c *Client) HandleSend(ctx context.Context) error {
-	if err := c.conn.Write(ctx, websocket.MessageText, []byte("connected!")); err != nil {
+	if err := c.conn.Write(ctx, websocket.MessageText, []byte("Being handlesend")); err != nil {
 		c.room.logger.Warn("Could not send message", slog.String("err", err.Error()))
 	}
 
@@ -64,18 +70,18 @@ func (c *Client) HandleSend(ctx context.Context) error {
 			c.conn.Write(ctx, websocket.MessageText, []byte("Binary not supported"))
 		}
 
-		var msg Message
+		var msg IncomingMessage
 		if err := json.NewDecoder(msgReader).Decode(&msg); err != nil {
 			c.conn.Write(ctx, websocket.MessageText, []byte("Could not unmarshall message"))
 		}
 
-		c.room.Sender.Send(ctx, c, &msg)
+		c.room.Sender.Send(ctx, c, msg.ToMsg(c.name))
 	}
 
 	return nil
 }
 
-func (c *Client) Receive(ctx context.Context, msg *Message) error {
+func (c *Client) Receive(ctx context.Context, msg models.Message) error {
 	c.sendMu.Lock()
 	defer c.sendMu.Unlock()
 
