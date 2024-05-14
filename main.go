@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -15,7 +16,7 @@ import (
 )
 
 func main() {
-	cancelsignals := []os.Signal{syscall.SIGHUP, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM}
+	cancelsignals := []os.Signal{syscall.SIGINT, syscall.SIGTERM}
 	appCtx, appcancel := signal.NotifyContext(context.Background(), cancelsignals...)
 	defer appcancel()
 
@@ -37,6 +38,9 @@ func main() {
 	}()
 
 	<-appCtx.Done()
+
+	closeGlobalHub()
+
 	slog.Info("Server shut down")
 }
 
@@ -54,4 +58,13 @@ func printConfig(conf *config.AppConfig) {
 	}
 
 	slog.Info("Using config: \n" + string(marshalledConf))
+}
+
+func closeGlobalHub() error {
+	slog.Info("Begin closing global hub")
+	if err := chats.GlobalHub.Close(); err != nil {
+		return fmt.Errorf("closing global hub: %w", err)
+	}
+	slog.Info("Success closing global hub")
+	return nil
 }

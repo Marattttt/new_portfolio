@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -17,6 +18,16 @@ import (
 type Hub struct {
 	logger *slog.Logger
 	Rooms  map[int]Room
+}
+
+func (h *Hub) Close() error {
+	for _, r := range h.Rooms {
+		fmt.Println("closing roomm", r.Id)
+		r.Close()
+		fmt.Println("closedroom", r.Id)
+	}
+	fmt.Println("doe closeeing roooms")
+	return nil
 }
 
 func NewHub() Hub {
@@ -46,6 +57,7 @@ func (h *Hub) Join(ctx context.Context, req models.RoomJoinRequest, conn *websoc
 		logger.Debug("Created new room", slog.Int("roomId", room.Id))
 		h.Rooms[req.RoomId] = room
 	}
+
 	r := h.Rooms[req.RoomId]
 
 	r.Join(ctx, req, conn)
@@ -57,6 +69,16 @@ type Room struct {
 	logger  *slog.Logger
 	Clients map[uuid.UUID]*Client
 	Sender  MessageSender
+}
+
+func (r *Room) Close() error {
+	for _, c := range r.Clients {
+		fmt.Println("closign clinet", c.name)
+		c.close <- struct{}{}
+		fmt.Println("done closign clinet", c.name)
+	}
+	fmt.Println("done closing room ", r.Id)
+	return nil
 }
 
 func NewRoom(hub *Hub, sender MessageSender) Room {

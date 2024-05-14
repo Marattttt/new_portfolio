@@ -40,6 +40,8 @@ type Client struct {
 	// The coonnection the client is attached to
 	conn *websocket.Conn
 
+	close chan struct{}
+
 	sendMu sync.Mutex
 }
 
@@ -58,25 +60,58 @@ func (c *Client) HandleSend(ctx context.Context) error {
 	}
 
 	for {
-		msgType, msgReader, err := c.conn.Reader(ctx)
-		if err != nil {
-			if !errors.Is(err, io.EOF) {
-				return fmt.Errorf("reading new message: %w", err)
+		select {
+		case <-c.close:
+			c.room.logger.Debug("Close client", slog.Int("eheh", 1))
+			if err := c.conn.CloseNow(); err != nil {
+				return fmt.Errorf("closing conn: %w", err)
 			}
-			break
-		}
+			return nil
 
-		if msgType == websocket.MessageBinary {
-			c.conn.Write(ctx, websocket.MessageText, []byte("Binary not supported"))
-		}
+		case err := <-c.receiveChan(ctx):
+			// Unexpected error
+			if err != nil && !errors.Is(err, io.EOF) {
+				return fmt.Errorf("waiting for a new message: %w", err)
+			}
 
-		var msg IncomingMessage
-		if err := json.NewDecoder(msgReader).Decode(&msg); err != nil {
-			c.conn.Write(ctx, websocket.MessageText, []byte("Could not unmarshall message"))
+			// Simple error
+			if err != nil {
+				c.room.logger.Info("stopped receiving messages", slog.String("clientId", c.id.String()))
+				return nil
+			}
 		}
-
-		c.room.Sender.Send(ctx, c, msg.ToMsg(c.name))
 	}
+}
+
+// Wraps the receive message method method in a channel
+func (c *Client) receiveChan(ctx context.Context) chan error {
+	done := make(chan error)
+	go func() {
+		done <- c.receive(ctx)
+	}()
+	return done
+}
+
+// Waits for a new message and passes it to the assigned sender
+func (c *Client) receive(ctx context.Context) error {
+	msgType, msgReader, err := c.conn.Reader(ctx)
+	if err != nil {
+		if !errors.Is(err, io.EOF) {
+			return fmt.Errorf("reading new message: %w", err)
+		}
+		return nil
+	}
+
+	if msgType == websocket.MessageBinary {
+		c.conn.Write(ctx, websocket.MessageText, []byte("Binary not supported"))
+	}
+
+	var msg IncomingMessage
+	if err := json.NewDecoder(msgReader).Decode(&msg); err != nil {
+		c.conn.Write(ctx, websocket.MessageText, []byte("Could not unmarshall message"))
+	}
+
+	c.room.Sender.Send(ctx, c, msg.ToMsg(c.name))
 
 	return nil
 }

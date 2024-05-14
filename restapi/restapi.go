@@ -17,6 +17,7 @@ func Server(ctx context.Context, conf *config.AppConfig) *http.Server {
 
 	router.Handle("/", http.HandlerFunc(Test))
 	router.Get("/rooms/join", http.HandlerFunc(HandleRoomJoin))
+	router.Handle("/rooms/close", http.HandlerFunc(HandleCloseHub))
 
 	listenOn := fmt.Sprintf("%s:%d", conf.Server.Host, conf.Server.Port)
 
@@ -35,4 +36,15 @@ func HandleRoomJoin(w http.ResponseWriter, r *http.Request) {
 	logger := httplog.LogEntry(r.Context())
 
 	chats.HandleRoomJoin(w, r, logger)
+}
+
+// FIXME: ehehehheh
+func HandleCloseHub(w http.ResponseWriter, r *http.Request) {
+	logger := httplog.LogEntry(r.Context())
+	logger.Info("Closing the global hub")
+
+	chats.GlobalHub.Close()
+
+	logger.Info("Global hub close completed")
+	w.Write([]byte("Global hub close completed"))
 }
