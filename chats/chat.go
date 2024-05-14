@@ -47,10 +47,11 @@ type Client struct {
 
 func NewClient(req models.RoomJoinRequest, room *Room, conn *websocket.Conn) Client {
 	return Client{
-		id:   uuid.Generate(),
-		room: room,
-		name: req.Name,
-		conn: conn,
+		id:    uuid.Generate(),
+		room:  room,
+		name:  req.Name,
+		conn:  conn,
+		close: make(chan struct{}),
 	}
 }
 

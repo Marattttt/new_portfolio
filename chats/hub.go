@@ -16,8 +16,9 @@ import (
 )
 
 type Hub struct {
-	logger *slog.Logger
-	Rooms  map[int]Room
+	logger      *slog.Logger
+	Rooms       map[int]Room
+	BaseContext func() context.Context
 }
 
 func (h *Hub) Close() error {
@@ -176,7 +177,7 @@ func HandleRoomJoin(w http.ResponseWriter, r *http.Request, logger *slog.Logger)
 		return
 	}
 
-	GlobalHub.Join(r.Context(), *joinReq, wsconn, logger)
+	go GlobalHub.Join(r.Context(), *joinReq, wsconn, logger)
 }
 
 func ReceiveJoinRequest(ctx context.Context, conn *websocket.Conn, logger *slog.Logger) *models.RoomJoinRequest {

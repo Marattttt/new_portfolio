@@ -11,7 +11,6 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-	"time"
 
 	"github.com/Marattttt/newportfolio/chats"
 	"github.com/Marattttt/newportfolio/config"
@@ -46,11 +45,11 @@ func main() {
 
 	<-appCtx.Done()
 
-	shutdown(logger, server)
+	shutdown(config.Conf, logger, server)
 }
 
-func shutdown(logger *slog.Logger, server *http.Server) {
-	const timeout = time.Second * 10
+func shutdown(conf *config.AppConfig, logger *slog.Logger, server *http.Server) {
+	timeout := conf.ShutDownTimeout
 	logger.Info("Beginning shutdown", slog.String("timeout", timeout.String()))
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -116,12 +115,4 @@ func printConfig(conf *config.AppConfig) {
 	}
 
 	slog.Info("Using config: \n" + string(marshalledConf))
-}
-
-func closeGlobalHub(logger *slog.Logger) {
-	slog.Info("Begin closing global hub")
-	if err := chats.GlobalHub.Close(); err != nil {
-		logger.Error("Closing gloabal hub", err)
-	}
-	slog.Info("Success closing global hub")
 }

@@ -3,6 +3,7 @@ package config
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/sethvargo/go-envconfig"
 )
@@ -19,8 +20,9 @@ func ReadConfig(ctx context.Context) error {
 }
 
 type AppConfig struct {
-	Mode   string       `env:"MODE, default=debug"`
-	Server ServerConfig `env:", prefix=SERV_"`
+	Mode            string        `env:"MODE, default=debug"`
+	Server          ServerConfig  `env:", prefix=SERV_"`
+	ShutDownTimeout time.Duration `env:"SHUTDOWNTIMEOUT, default=10s"`
 }
 
 func (ac AppConfig) IsDebug() bool {
