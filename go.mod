@@ -11,6 +11,8 @@ require (
 
 require github.com/google/uuid v1.6.0
 
+require golang.org/x/sync v0.7.0 // indirect
+
 require (
 	github.com/docker/distribution v2.8.3+incompatible
 	nhooyr.io/websocket v1.8.11 // indirect

@@ -80,6 +80,7 @@ func shutdown(logger *slog.Logger, server *http.Server) {
 		if err != nil {
 			logger.Error("Shutdown not successful", slog.String("errs", err.Error()))
 		}
+
 	}
 
 	logger.Info("Server shut down")
