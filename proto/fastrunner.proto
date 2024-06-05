@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option go_package = "services/fastrunner/grpcgen;grpcgen";
+
+package fastrunner;
+
+service FastRunner { rpc Run(RunRequest) returns (RunResponse); }
+
+message RunRequest { string code = 1; }
+
+message RunResponse {
+  string error = 1;
+  string output = 2;
+}
