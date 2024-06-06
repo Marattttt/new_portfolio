@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	FastRunner_Run_FullMethodName = "/fastrunner.FastRunner/Run"
+	FastRunner_RunGoLang_FullMethodName = "/fastrunner.FastRunner/RunGoLang"
 )
 
 // FastRunnerClient is the client API for FastRunner service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FastRunnerClient interface {
-	Run(ctx context.Context, in *RunRequest, opts ...grpc.CallOption) (*RunResponse, error)
+	RunGoLang(ctx context.Context, in *GoRequest, opts ...grpc.CallOption) (*RunResponse, error)
 }
 
 type fastRunnerClient struct {
@@ -37,10 +37,10 @@ func NewFastRunnerClient(cc grpc.ClientConnInterface) FastRunnerClient {
 	return &fastRunnerClient{cc}
 }
 
-func (c *fastRunnerClient) Run(ctx context.Context, in *RunRequest, opts ...grpc.CallOption) (*RunResponse, error) {
+func (c *fastRunnerClient) RunGoLang(ctx context.Context, in *GoRequest, opts ...grpc.CallOption) (*RunResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RunResponse)
-	err := c.cc.Invoke(ctx, FastRunner_Run_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, FastRunner_RunGoLang_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *fastRunnerClient) Run(ctx context.Context, in *RunRequest, opts ...grpc
 // All implementations must embed UnimplementedFastRunnerServer
 // for forward compatibility
 type FastRunnerServer interface {
-	Run(context.Context, *RunRequest) (*RunResponse, error)
+	RunGoLang(context.Context, *GoRequest) (*RunResponse, error)
 	mustEmbedUnimplementedFastRunnerServer()
 }
 
@@ -59,8 +59,8 @@ type FastRunnerServer interface {
 type UnimplementedFastRunnerServer struct {
 }
 
-func (UnimplementedFastRunnerServer) Run(context.Context, *RunRequest) (*RunResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Run not implemented")
+func (UnimplementedFastRunnerServer) RunGoLang(context.Context, *GoRequest) (*RunResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RunGoLang not implemented")
 }
 func (UnimplementedFastRunnerServer) mustEmbedUnimplementedFastRunnerServer() {}
 
@@ -75,20 +75,20 @@ func RegisterFastRunnerServer(s grpc.ServiceRegistrar, srv FastRunnerServer) {
 	s.RegisterService(&FastRunner_ServiceDesc, srv)
 }
 
-func _FastRunner_Run_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RunRequest)
+func _FastRunner_RunGoLang_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GoRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FastRunnerServer).Run(ctx, in)
+		return srv.(FastRunnerServer).RunGoLang(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FastRunner_Run_FullMethodName,
+		FullMethod: FastRunner_RunGoLang_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FastRunnerServer).Run(ctx, req.(*RunRequest))
+		return srv.(FastRunnerServer).RunGoLang(ctx, req.(*GoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -101,8 +101,8 @@ var FastRunner_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*FastRunnerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Run",
-			Handler:    _FastRunner_Run_Handler,
+			MethodName: "RunGoLang",
+			Handler:    _FastRunner_RunGoLang_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

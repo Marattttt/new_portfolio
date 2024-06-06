@@ -9,12 +9,11 @@ import (
 
 	"github.com/Marattttt/newportfolio/services/fastrunner/config"
 	"github.com/Marattttt/newportfolio/services/fastrunner/runners"
-	"github.com/sethvargo/go-envconfig"
 )
 
 func main() {
-	var conf config.App
-	if err := envconfig.Process(context.TODO(), &conf); err != nil {
+	conf, err := config.NewApp(context.TODO())
+	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -29,7 +28,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if res, err := runner.Run(string(input), "ehe"); err != nil {
+	if res, err := runner.Run(string(input), "cli-app"); err != nil {
 		log.Fatal(err)
 	} else {
 		log.Println(res)

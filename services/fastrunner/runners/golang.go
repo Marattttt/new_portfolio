@@ -1,6 +1,7 @@
 package runners
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -42,29 +43,41 @@ type LocalGoRunner struct {
 	conf   *config.Runners
 }
 
-func (lg *LocalGoRunner) Run(code string, name string) (string, error) {
+// Runresult contains errors with the code, error returned along with it contains a system error
+// FIXME: no use of context parameter
+func (lg *LocalGoRunner) Run(ctx context.Context, code string, id string) (RunResult, error) {
 	// FIXME: no delete after use
-	inFile, err := os.CreateTemp(lg.conf.GoRunDir, name+"*.go")
+	inFile, err := os.CreateTemp(lg.conf.GoRunDir, id+"*.go")
 	if err != nil {
-		return "", fmt.Errorf("creating temp input file: %w", err)
+		return RunResult{}, fmt.Errorf("creating temp input file: %w", err)
 	}
-	defer inFile.Close()
+	defer lg.clearFile(inFile)
 
-	// FIXME:
+	// TODO: Add maxfile check?
 	_, err = inFile.WriteString(code)
 	if err != nil {
-		return "", fmt.Errorf("writing code to a temp file: %w", err)
+		return RunResult{}, fmt.Errorf("writing code to a temp file: %w", err)
 	}
 
 	args := []string{"run", inFile.Name()}
-	fmt.Println(inFile.Name())
+	lg.logger.Info("Created file", slog.String("path", inFile.Name()))
 	cmd := exec.Command("go", args...)
 	cmd.Dir = lg.conf.GoRunDir
 
 	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("executing go code with %s, output: %s: %w", cmd.String(), string(output), err)
-	}
 
-	return string(output), nil
+	fmt.Println(string(output))
+
+	// Remove comment about command line arguments used for executing
+	stripped := strings.Split(string(output), "\n")[1]
+	return RunResult{stripped, err}, nil
+}
+
+func (lg *LocalGoRunner) clearFile(openFile *os.File) error {
+	openFile.Close()
+	name := openFile.Name()
+	if err := os.Remove(name); err != nil {
+		return err
+	}
+	return nil
 }
