@@ -4,9 +4,9 @@ option go_package = "services/fastrunner/grpcgen;grpcgen";
 
 package fastrunner;
 
-service FastRunner { rpc Run(RunRequest) returns (RunResponse); }
+service FastRunner { rpc RunGoLang(GoRequest) returns (RunResponse); }
 
-message RunRequest { string code = 1; }
+message GoRequest { string code = 1; }
 
 message RunResponse {
   string error = 1;

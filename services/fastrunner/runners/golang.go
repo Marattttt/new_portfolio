@@ -44,16 +44,13 @@ type LocalGoRunner struct {
 }
 
 // Runresult contains errors with the code, error returned along with it contains a system error
-// FIXME: no use of context parameter
 func (lg *LocalGoRunner) Run(ctx context.Context, code string, id string) (RunResult, error) {
-	// FIXME: no delete after use
 	inFile, err := os.CreateTemp(lg.conf.GoRunDir, id+"*.go")
 	if err != nil {
 		return RunResult{}, fmt.Errorf("creating temp input file: %w", err)
 	}
 	defer lg.clearFile(inFile)
 
-	// TODO: Add maxfile check?
 	_, err = inFile.WriteString(code)
 	if err != nil {
 		return RunResult{}, fmt.Errorf("writing code to a temp file: %w", err)
@@ -69,8 +66,8 @@ func (lg *LocalGoRunner) Run(ctx context.Context, code string, id string) (RunRe
 	fmt.Println(string(output))
 
 	// Remove comment about command line arguments used for executing
-	stripped := strings.Split(string(output), "\n")[1]
-	return RunResult{stripped, err}, nil
+	// stripped := strings.Split(string(output), "\n")
+	return RunResult{string(output), err}, nil
 }
 
 func (lg *LocalGoRunner) clearFile(openFile *os.File) error {
