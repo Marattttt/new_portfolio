@@ -23,6 +23,7 @@ export class GoRunnerGrpc implements GoRunner {
 
 			client.runGoLang(request, (error, response) => {
 				if (error) {
+					console.error(error)
 					reject(error)
 					return
 				}
@@ -32,6 +33,7 @@ export class GoRunnerGrpc implements GoRunner {
 					output: response.getOutput(),
 					error: response.getError(),
 				}
+
 				resolve(result)
 			})
 

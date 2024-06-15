@@ -2,34 +2,25 @@ import express from "express"
 import { GoCode, GoRunner } from "./runners/runners"
 import { GoRunnerGrpc } from "./runners/golang"
 
+const cors = require('cors')
 const app = express()
 const port = process.env.PORT || 3030
 
 const runner: GoRunner = new GoRunnerGrpc('localhost:3001')
 
+app.use(cors())
 app.use(express.json())
 
-const asyncHandler = (fn: any) => (req: any, res: any, next: any) => {
+const asyncHandler = (fn: any) => (req: express.Request, res: express.Response, next: express.Handler) => {
 	fn(req, res, next).catch(next)
 }
-//
-app.get('/', (req, res) => {
-	console.log(req.body)
-	res.send(req.body)
-})
 
-app.post('/', asyncHandler(async (req: any, res: any) => {
-	console.log(`Received: ${req.body}`)
-
+app.post('/', asyncHandler(async (req: express.Request, res: express.Response) => {
+	console.log(`Received: `, req.body)
 	try {
 		const code = req.body as GoCode
 		const { output, error } = await runner.run(code)
-		if (error) {
-			res.send(error)
-			return
-		}
-
-		res.send(output)
+		res.send({ output: output, error: error })
 	}
 	catch (e) {
 		console.log("NOOOOOO EXCEPTIOUNN HAPPEDNED!!!!")
@@ -38,9 +29,9 @@ app.post('/', asyncHandler(async (req: any, res: any) => {
 	}
 }))
 
-app.use((err: any, req: any, res: any, next: any) => {
+app.use((err: any, req: express.Request, res: express.Response, next: express.Handler) => {
 	console.error(err)
-	res.status(500).send('internal errorororoororoor')
+	res.status(500).send('internal error')
 })
 
 app.listen(port, () => console.log(`app listening on port ${port}`))
