@@ -43,8 +43,14 @@ type LocalGoRunner struct {
 	conf   *config.Runners
 }
 
+// Wrapper for RunId with a default id
+func (lg *LocalGoRunner) Run(ctx context.Context, code string) (RunResult, error) {
+	id := "temp_run_file"
+	return lg.RunId(ctx, code, id)
+}
+
 // Runresult contains errors with the code, error returned along with it contains a system error
-func (lg *LocalGoRunner) Run(ctx context.Context, code string, id string) (RunResult, error) {
+func (lg *LocalGoRunner) RunId(ctx context.Context, code string, id string) (RunResult, error) {
 	inFile, err := os.CreateTemp(lg.conf.GoRunDir, id+"*.go")
 	if err != nil {
 		return RunResult{}, fmt.Errorf("creating temp input file: %w", err)

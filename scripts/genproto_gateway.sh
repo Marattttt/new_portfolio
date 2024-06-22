@@ -1,10 +1,22 @@
 #! /usr/bin/sh
 
 
-PROTO_DIR="../proto"
-OUT_DIR="../services/gateway/src/protogen"
+init_file=
+if stat ./init_vars.sh &> /dev/null; then
+	echo fuck
+	init_file='./init_vars.sh';
+elif stat ./scripts/init_vars.sh &> /dev/null; then
+	init_file='./scripts/init_vars.sh';
+else
+	echo 'cannot find scripts/init_vars.sh file';
+	exit 1
+fi;
+
+source "$init_file"
 
 mkdir -p $OUT_DIR
+
+set -euo pipefail
 
 # generate js codes with @grpc/grpc-js
 protoc-gen-grpc \

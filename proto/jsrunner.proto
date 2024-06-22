@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option go_package = "./grpc/grpcgen/jsgen;jsgen";
+
+package jsrunner;
+
+service JsRunner { rpc RunJs(JsRequest) returns (RunResponse); }
+
+message JsRequest { string code = 1; }
+
+message RunResponse {
+  string error = 1;
+  string output = 2;
+}

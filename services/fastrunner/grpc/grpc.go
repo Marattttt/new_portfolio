@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 
 	"github.com/Marattttt/newportfolio/services/fastrunner/config"
-	"github.com/Marattttt/newportfolio/services/fastrunner/grpc/grpcgen"
+	"github.com/Marattttt/newportfolio/services/fastrunner/grpc/grpcgen/gogen"
 	"github.com/Marattttt/newportfolio/services/fastrunner/runners"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -17,12 +17,12 @@ import (
 
 var ErrInternal = fmt.Errorf("Something went wrong")
 
-func FormatRunResult(res runners.RunResult) *grpcgen.RunResponse {
+func FormatRunResult(res runners.RunResult) *gogen.RunResponse {
 	err := ""
 	if res.Err != nil {
 		err = res.Err.Error()
 	}
-	return &grpcgen.RunResponse{
+	return &gogen.RunResponse{
 		Error:  err,
 		Output: res.Text,
 	}
@@ -38,7 +38,7 @@ type Server struct {
 	Logger   *slog.Logger
 	GoRunner CodeRunner
 
-	grpcgen.UnimplementedFastRunnerServer
+	gogen.UnimplementedGoRunnerServer
 	grpcServer *grpc.Server
 }
 
@@ -61,7 +61,7 @@ func (s *Server) ListenAndServe(ctx context.Context, conf *config.Server) error 
 	}
 
 	s.grpcServer = grpc.NewServer()
-	grpcgen.RegisterFastRunnerServer(s.grpcServer, s)
+	gogen.RegisterGoRunnerServer(s.grpcServer, s)
 	reflection.Register(s.grpcServer)
 
 	s.Logger.Info("Starting new grpc server", slog.String("on", listenOn))
@@ -92,7 +92,7 @@ func (s *Server) Stop(ctx context.Context) error {
 	}
 }
 
-func (s Server) RunGoLang(ctx context.Context, req *grpcgen.GoRequest) (*grpcgen.RunResponse, error) {
+func (s Server) RunGoLang(ctx context.Context, req *gogen.RunGoRequest) (*gogen.RunResponse, error) {
 	id := strconv.Itoa(int(reqCount.Add(1)))
 	res, err := s.GoRunner.Run(ctx, req.Code, id)
 

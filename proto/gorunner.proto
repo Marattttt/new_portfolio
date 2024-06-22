@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "./grpc/grpcgen/gogen;gogen";
+
+
+package multirunner;
+
+service GoRunner { rpc RunGo(RunGoRequest) returns (RunResponse); }
+
+message RunGoRequest { 
+  string code = 1;
+}
+
+message RunResponse {
+  string error = 1;
+  string output = 2;
+}
