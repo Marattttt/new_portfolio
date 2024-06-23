@@ -1,4 +1,4 @@
-module github.com/Marattttt/newportfolio/services/fastrunner
+module github.com/Marattttt/newportfolio/services/multirunner
 
 go 1.22.2
 

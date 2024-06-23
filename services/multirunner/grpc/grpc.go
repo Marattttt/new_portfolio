@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
-	"strconv"
-	"sync/atomic"
 
-	"github.com/Marattttt/newportfolio/services/fastrunner/config"
-	"github.com/Marattttt/newportfolio/services/fastrunner/grpc/grpcgen/gogen"
-	"github.com/Marattttt/newportfolio/services/fastrunner/runners"
+	"github.com/Marattttt/newportfolio/services/multirunner/config"
+	"github.com/Marattttt/newportfolio/services/multirunner/grpc/grpcgen/gogen"
+	"github.com/Marattttt/newportfolio/services/multirunner/runners"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -28,10 +26,8 @@ func FormatRunResult(res runners.RunResult) *gogen.RunResponse {
 	}
 }
 
-var reqCount atomic.Int32
-
 type CodeRunner interface {
-	Run(ctx context.Context, code string, id string) (runners.RunResult, error)
+	Run(ctx context.Context, code string) (runners.RunResult, error)
 }
 
 type Server struct {
@@ -93,8 +89,7 @@ func (s *Server) Stop(ctx context.Context) error {
 }
 
 func (s Server) RunGoLang(ctx context.Context, req *gogen.RunGoRequest) (*gogen.RunResponse, error) {
-	id := strconv.Itoa(int(reqCount.Add(1)))
-	res, err := s.GoRunner.Run(ctx, req.Code, id)
+	res, err := s.GoRunner.Run(ctx, req.Code)
 
 	if err != nil {
 		s.Logger.Error("Running code", slog.String("lang", "go"), slog.String("err", err.Error()))

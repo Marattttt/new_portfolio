@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/Marattttt/newportfolio/services/fastrunner/config"
+	"github.com/Marattttt/newportfolio/services/multirunner/config"
 )
 
 // ONLY SUPPORTS LOCAL

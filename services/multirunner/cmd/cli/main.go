@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/Marattttt/newportfolio/services/fastrunner/config"
-	"github.com/Marattttt/newportfolio/services/fastrunner/runners"
+	"github.com/Marattttt/newportfolio/services/multirunner/config"
+	"github.com/Marattttt/newportfolio/services/multirunner/runners"
 )
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if res, err := runner.Run(context.Background(), string(input), "cli-app"); err != nil {
+	if res, err := runner.Run(context.Background(), string(input)); err != nil {
 		log.Fatal(err)
 	} else {
 		log.Println(res)

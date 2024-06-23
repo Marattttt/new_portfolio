@@ -11,23 +11,15 @@ import (
 
 func NewApp(ctx context.Context) (*App, error) {
 	var app App
-	if err := envconfig.Process(ctx, &app); err != nil {
+	if err := envconfig.Process(ctx, &app, toLowerMutator{}); err != nil {
 		return nil, fmt.Errorf("processsing env: %w", err)
 	}
-
-	FormatConfigValues(&app)
 
 	if err := Validate(app); err != nil {
 		return nil, fmt.Errorf("validation: %w", err)
 	}
 
 	return &app, nil
-}
-
-func FormatConfigValues(conf *App) {
-	for i := range conf.Supported {
-		conf.Supported[i] = strings.ToLower(conf.Supported[i])
-	}
 }
 
 func Validate(conf App) error {
@@ -69,3 +61,13 @@ type Runners struct {
 	// Must be full path, not relative
 	GoRunDir string `env:"RUN_GO_DIR, default=/tmp/gorunner/"`
 }
+
+// Wrapper for formatting all config values from using the envconfig package
+type toLowerMutator struct{}
+
+// Turns all string values to lowercase
+func (_ toLowerMutator) EnvMutate(ctx context.Context, originalKey, resolvedKey, originalValue, currentValue string) (newValue string, stop bool, err error) {
+	return strings.ToLower(currentValue), false, nil
+}
+
+type configValueValidator struct{}
