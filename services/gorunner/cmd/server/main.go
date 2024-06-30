@@ -9,9 +9,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Marattttt/newportfolio/services/multirunner/config"
-	"github.com/Marattttt/newportfolio/services/multirunner/grpc"
-	"github.com/Marattttt/newportfolio/services/multirunner/runners"
+	"github.com/Marattttt/newportfolio/services/gorunner/config"
+	"github.com/Marattttt/newportfolio/services/gorunner/grpc"
+	"github.com/Marattttt/newportfolio/services/gorunner/runners"
 )
 
 func main() {

@@ -8,18 +8,18 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/Marattttt/newportfolio/services/multirunner/config"
+	"github.com/Marattttt/newportfolio/services/gorunner/config"
 )
 
 // ONLY SUPPORTS LOCAL
 func InitGoEnv(conf *config.Runners) error {
-	if err := os.MkdirAll(conf.GoRunDir, 0777); err != nil {
+	if err := os.MkdirAll(*conf.GoRunDir, 0777); err != nil {
 		return fmt.Errorf("initialzing runtime directory: %w", err)
 	}
 
 	args := []string{"mod", "init", "portfolio/gorunner"}
 	cmd := exec.Command("go", args...)
-	cmd.Dir = conf.GoRunDir
+	cmd.Dir = *conf.GoRunDir
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -51,7 +51,7 @@ func (lg *LocalGoRunner) Run(ctx context.Context, code string) (RunResult, error
 
 // Runresult contains errors with the code, error returned along with it contains a system error
 func (lg *LocalGoRunner) RunId(ctx context.Context, code string, id string) (RunResult, error) {
-	inFile, err := os.CreateTemp(lg.conf.GoRunDir, id+"*.go")
+	inFile, err := os.CreateTemp(*lg.conf.GoRunDir, id+"*.go")
 	if err != nil {
 		return RunResult{}, fmt.Errorf("creating temp input file: %w", err)
 	}
@@ -65,7 +65,7 @@ func (lg *LocalGoRunner) RunId(ctx context.Context, code string, id string) (Run
 	args := []string{"run", inFile.Name()}
 	lg.logger.Info("Created file", slog.String("path", inFile.Name()))
 	cmd := exec.Command("go", args...)
-	cmd.Dir = lg.conf.GoRunDir
+	cmd.Dir = *lg.conf.GoRunDir
 
 	output, err := cmd.CombinedOutput()
 

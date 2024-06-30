@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"net"
 
-	"github.com/Marattttt/newportfolio/services/multirunner/config"
-	"github.com/Marattttt/newportfolio/services/multirunner/grpc/grpcgen/gogen"
-	"github.com/Marattttt/newportfolio/services/multirunner/runners"
+	"github.com/Marattttt/newportfolio/services/gorunner/config"
+	"github.com/Marattttt/newportfolio/services/gorunner/grpc/grpcgen/gogen"
+	"github.com/Marattttt/newportfolio/services/gorunner/runners"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )

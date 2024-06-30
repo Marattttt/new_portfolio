@@ -16,7 +16,7 @@ type App struct {
 }
 
 type Server struct {
-	Methods  []string `env:"SERVE_METHODS, default='http,grpc'"`
+	Methods  []string `env:"SERVE_METHODS, default=http,grpc"`
 	HttpPort int      `env:"HTTP_PORT, default=3000"`
 	GrpcPort int      `env:"GRPC_PORT, default=3001"`
 }
