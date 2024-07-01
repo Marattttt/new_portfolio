@@ -1,23 +1,23 @@
-// package: fastrunner
-// file: fastrunner.proto
+// package: jsrunner
+// file: jsrunner.proto
 
 import * as jspb from 'google-protobuf';
 
-export class GoRequest extends jspb.Message {
+export class JsRequest extends jspb.Message {
   getCode(): string;
   setCode(value: string): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GoRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: GoRequest): GoRequest.AsObject;
+  toObject(includeInstance?: boolean): JsRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: JsRequest): JsRequest.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: GoRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GoRequest;
-  static deserializeBinaryFromReader(message: GoRequest, reader: jspb.BinaryReader): GoRequest;
+  static serializeBinaryToWriter(message: JsRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): JsRequest;
+  static deserializeBinaryFromReader(message: JsRequest, reader: jspb.BinaryReader): JsRequest;
 }
 
-export namespace GoRequest {
+export namespace JsRequest {
   export type AsObject = {
     code: string,
   }
