@@ -45,6 +45,24 @@ func NewServer(logger *slog.Logger, goRunner CodeRunner) Server {
 	}
 }
 
+func (s *Server) RunGo(ctx context.Context, req *gogen.RunGoRequest) (*gogen.RunResponse, error) {
+	result, err := s.GoRunner.Run(ctx, req.Code)
+	if err != nil {
+		s.Logger.Error("Could not run go code", slog.String("err", err.Error()))
+		return nil, fmt.Errorf("internal server error")
+	}
+
+	formatted := gogen.RunResponse{
+		Output: result.Text,
+	}
+
+	if result.Err != nil {
+		formatted.Error = result.Err.Error()
+	}
+
+	return &formatted, nil
+}
+
 func (s *Server) ListenAndServe(ctx context.Context, conf *config.Server) error {
 	if s.grpcServer != nil {
 		return fmt.Errorf("Server already started")
