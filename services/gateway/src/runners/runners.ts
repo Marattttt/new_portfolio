@@ -2,16 +2,16 @@ export interface GoRunner {
 	run(code: GoCode): Promise<RunResult>
 }
 
-export type RunnerOptions = {
-	url: string
+export class RunnerOptions {
+	public url = ""
 }
 
-export type GoCode = {
-	code: string
+export class GoCode {
+	public code = ""
 }
 
-export type RunResult = {
-	output: string
-	error: string | undefined
+export class RunResult {
+	public output: string | undefined
+	public error: string | undefined
 }
 
