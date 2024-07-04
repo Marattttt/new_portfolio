@@ -97,12 +97,8 @@ func formatGenRequest(req *jsgen.JsRunRequest) runners.RunRequest {
 }
 
 func formatRunResult(res runners.RunResult) *jsgen.JsRunResponse {
-	err := ""
-	if res.Err != nil {
-		err = res.Err.Error()
-	}
 	return &jsgen.JsRunResponse{
-		Error:  err,
+		Error:  string(res.Err),
 		Output: string(res.Output),
 	}
 }

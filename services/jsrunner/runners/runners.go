@@ -3,12 +3,11 @@ package runners
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
-	"os"
-	"os/exec"
-	"path/filepath"
+	"sync"
 
 	"github.com/Marattttt/new_portfoliio/services/jsrunner/config"
 )
@@ -20,7 +19,7 @@ type RunRequest struct {
 type RunResult struct {
 	Output   []byte
 	ExitCode int
-	Err      error
+	Err      []byte
 }
 
 // Formats the result in a human-readable format
@@ -34,21 +33,27 @@ func (r RunResult) String() string {
 
 	errout := ""
 	if r.Err != nil {
-		errout = fmt.Sprintf("Error: %s", r.Err.Error())
+		errout = fmt.Sprintf("Error: %s", string(r.Err))
 	}
 
 	return fmt.Sprintf("%s; %s; %s", output, exitcode, errout)
 }
 
+type NodeRunner interface {
+	NodeRun(context.Context, []byte) (io.ReadCloser, io.ReadCloser, error)
+}
+
 type LocalRunner struct {
 	Conf   *config.Runtime
 	Logger *slog.Logger
+	node   NodeRunner
 }
 
 func NewLocal(logger *slog.Logger, conf *config.Runtime) LocalRunner {
 	return LocalRunner{
 		Conf:   conf,
 		Logger: logger,
+		node:   LocalNode{},
 	}
 }
 
@@ -66,62 +71,78 @@ func (lr LocalRunner) RunJsReader(ctx context.Context, r io.Reader) (RunResult, 
 
 	lr.Logger.Debug("Received code", slog.String("code", string(code)))
 
-	codefile, path, err := createFile()
-	if err != nil {
-		return RunResult{}, fmt.Errorf("creting temp file: %w", err)
-	}
-	// TODO: add config for when to remove files or do a clean-up
-	// defer removeFile(codefile)
-
-	lr.Logger.Debug("Created temp file", slog.String("path", path))
-
-	_, err = codefile.Write(code)
-	if err != nil {
-		return RunResult{}, fmt.Errorf("writing to temp file: %w", err)
-	}
-
-	codefile.Close()
-
-	return lr.runFile(ctx, path)
-}
-
-func createFile() (*os.File, string, error) {
-	tmp, err := os.CreateTemp("", "")
-	if err != nil {
-		return nil, "", fmt.Errorf("creating temp file: %w", err)
-	}
-
-	fullPath, err := filepath.Abs(tmp.Name())
-	if err != nil {
-		panic(err)
-	}
-
-	return tmp, fullPath, nil
-}
-
-func removeFile(file *os.File) {
-	file.Close()
-	fullPath, err := filepath.Abs(file.Name())
-	if err != nil {
-		return
-	}
-	os.Remove(fullPath)
-}
-
-// Execute js file locaated at a given location
-func (lr LocalRunner) runFile(ctx context.Context, absPath string) (RunResult, error) {
-	runCtx, cancel := context.WithTimeout(ctx, lr.Conf.RunTimeout)
+	timedCtx, cancel := context.WithTimeout(ctx, lr.Conf.RunTimeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(runCtx, "node", absPath)
-
-	output, err := cmd.CombinedOutput()
+	out, errout, err := lr.node.NodeRun(timedCtx, code)
 	if err != nil {
-		return RunResult{}, fmt.Errorf("starting node: %w", err)
+		return RunResult{}, fmt.Errorf("node: %w", err)
+	}
+
+	outData, errData, err := readAllOutput(out, errout)
+	if err != nil {
+		return RunResult{}, fmt.Errorf("running node: %w", err)
 	}
 
 	return RunResult{
-		Output:   output,
-		ExitCode: -1,
+		Output: outData,
+		Err:    errData,
 	}, nil
+}
+
+func readAllOutput(out, errout io.Reader) ([]byte, []byte, error) {
+	var (
+		outData    = make([]byte, 0)
+		erroutData = make([]byte, 0)
+		errChan    = make(chan error, 2)
+		wg         sync.WaitGroup
+	)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		buf := make([]byte, 1024)
+		for {
+			n, err := out.Read(buf)
+			if err == io.EOF {
+				return
+			}
+			if err != nil {
+				errChan <- fmt.Errorf("reading out: %w", err)
+			}
+
+			outData = append(outData, buf[:n]...)
+		}
+	}()
+
+	go func() {
+		defer wg.Done()
+		buf := make([]byte, 1024)
+		for {
+			n, err := errout.Read(buf)
+			if err == io.EOF {
+				return
+			}
+			if err != nil {
+				errChan <- fmt.Errorf("reading errout: %w", err)
+			}
+
+			erroutData = append(erroutData, buf[:n]...)
+		}
+	}()
+	wg.Add(1)
+	wg.Wait()
+	close(errChan)
+
+	if len(errChan) > 0 {
+		errs := make([]error, len(errChan))
+		for err := range errChan {
+			errs = append(errs, err)
+		}
+		err := errors.Join(errs...)
+
+		return nil, nil, err
+	}
+
+	return outData, erroutData, nil
 }
