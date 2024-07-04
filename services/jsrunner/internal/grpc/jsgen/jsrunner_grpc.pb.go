@@ -26,7 +26,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type JsRunnerClient interface {
-	RunJs(ctx context.Context, in *JsRequest, opts ...grpc.CallOption) (*RunResponse, error)
+	RunJs(ctx context.Context, in *JsRunRequest, opts ...grpc.CallOption) (*JsRunResponse, error)
 }
 
 type jsRunnerClient struct {
@@ -37,9 +37,9 @@ func NewJsRunnerClient(cc grpc.ClientConnInterface) JsRunnerClient {
 	return &jsRunnerClient{cc}
 }
 
-func (c *jsRunnerClient) RunJs(ctx context.Context, in *JsRequest, opts ...grpc.CallOption) (*RunResponse, error) {
+func (c *jsRunnerClient) RunJs(ctx context.Context, in *JsRunRequest, opts ...grpc.CallOption) (*JsRunResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RunResponse)
+	out := new(JsRunResponse)
 	err := c.cc.Invoke(ctx, JsRunner_RunJs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (c *jsRunnerClient) RunJs(ctx context.Context, in *JsRequest, opts ...grpc.
 // All implementations must embed UnimplementedJsRunnerServer
 // for forward compatibility
 type JsRunnerServer interface {
-	RunJs(context.Context, *JsRequest) (*RunResponse, error)
+	RunJs(context.Context, *JsRunRequest) (*JsRunResponse, error)
 	mustEmbedUnimplementedJsRunnerServer()
 }
 
@@ -59,7 +59,7 @@ type JsRunnerServer interface {
 type UnimplementedJsRunnerServer struct {
 }
 
-func (UnimplementedJsRunnerServer) RunJs(context.Context, *JsRequest) (*RunResponse, error) {
+func (UnimplementedJsRunnerServer) RunJs(context.Context, *JsRunRequest) (*JsRunResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RunJs not implemented")
 }
 func (UnimplementedJsRunnerServer) mustEmbedUnimplementedJsRunnerServer() {}
@@ -76,7 +76,7 @@ func RegisterJsRunnerServer(s grpc.ServiceRegistrar, srv JsRunnerServer) {
 }
 
 func _JsRunner_RunJs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(JsRequest)
+	in := new(JsRunRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func _JsRunner_RunJs_Handler(srv interface{}, ctx context.Context, dec func(inte
 		FullMethod: JsRunner_RunJs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(JsRunnerServer).RunJs(ctx, req.(*JsRequest))
+		return srv.(JsRunnerServer).RunJs(ctx, req.(*JsRunRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

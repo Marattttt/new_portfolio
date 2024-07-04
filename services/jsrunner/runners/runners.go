@@ -1,6 +1,7 @@
-package coderun
+package runners
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -8,10 +9,13 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
-	"github.com/Marattttt/new_portfoliio/services/jsrunner/internal/config"
+	"github.com/Marattttt/new_portfoliio/services/jsrunner/config"
 )
+
+type RunRequest struct {
+	Code string
+}
 
 type RunResult struct {
 	Output   []byte
@@ -26,13 +30,14 @@ func (r RunResult) String() string {
 		output += fmt.Sprintf("Output: `%s`; ", string(r.Output))
 	}
 
-	output += fmt.Sprintf("Exit Code: %d; ", r.ExitCode)
+	exitcode := fmt.Sprintf("Exit Code: %d; ", r.ExitCode)
 
+	errout := ""
 	if r.Err != nil {
-		output += fmt.Sprintf("Error: %s", r.Err.Error())
+		errout = fmt.Sprintf("Error: %s", r.Err.Error())
 	}
 
-	return strings.TrimSpace(output)
+	return fmt.Sprintf("%s; %s; %s", output, exitcode, errout)
 }
 
 type LocalRunner struct {
@@ -40,9 +45,21 @@ type LocalRunner struct {
 	Logger *slog.Logger
 }
 
+func NewLocal(logger *slog.Logger, conf *config.Runtime) LocalRunner {
+	return LocalRunner{
+		Conf:   conf,
+		Logger: logger,
+	}
+}
+
+func (lr LocalRunner) RunJs(ctx context.Context, req RunRequest) (RunResult, error) {
+	r := bytes.NewReader([]byte(req.Code))
+	return lr.RunJsReader(ctx, r)
+}
+
 // Retunred error is error with starting/finishing the exectution,
-func (lr LocalRunner) Exec(ctx context.Context, file io.Reader) (RunResult, error) {
-	code, err := io.ReadAll(file)
+func (lr LocalRunner) RunJsReader(ctx context.Context, r io.Reader) (RunResult, error) {
+	code, err := io.ReadAll(r)
 	if err != nil {
 		return RunResult{}, fmt.Errorf("reading code: %w", err)
 	}
@@ -65,7 +82,7 @@ func (lr LocalRunner) Exec(ctx context.Context, file io.Reader) (RunResult, erro
 
 	codefile.Close()
 
-	return lr.Run(ctx, path)
+	return lr.runFile(ctx, path)
 }
 
 func createFile() (*os.File, string, error) {
@@ -92,7 +109,7 @@ func removeFile(file *os.File) {
 }
 
 // Execute js file locaated at a given location
-func (lr LocalRunner) Run(ctx context.Context, absPath string) (RunResult, error) {
+func (lr LocalRunner) runFile(ctx context.Context, absPath string) (RunResult, error) {
 	runCtx, cancel := context.WithTimeout(ctx, lr.Conf.RunTimeout)
 	defer cancel()
 

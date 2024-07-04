@@ -29,7 +29,8 @@ fi
 # Add fail on use of uninitialied variable
 set -u pipefail
 
-OUT_DIR="$SERVICE_DIR/src/protogen"
+OUT_DIR="$SERVICE_DIR"
+mkdir -p "$OUT_DIR"
 
 protoc --proto_path=$PROTO_DIR \
 	--go_out=$OUT_DIR \
