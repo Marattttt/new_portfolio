@@ -31,7 +31,7 @@ set -u pipefail
 OUT_DIR="$SERVICE_DIR/src/protogen"
 mkdir -p "$OUT_DIR"
 
-# generate js codes with @grpc/grpc-js
+# generate gorunner client code 
 protoc \
   --plugin=$(npm root)/.bin/protoc-gen-ts_proto \
  --ts_proto_out="$OUT_DIR" \
@@ -39,3 +39,13 @@ protoc \
  --ts_proto_opt=esModuleInterop=true \
  --proto_path="$PROTO_DIR" \
  "$PROTO_DIR/gorunner.proto"
+ 
+ 
+# generate jsrunner client code 
+protoc \
+  --plugin=$(npm root)/.bin/protoc-gen-ts_proto \
+ --ts_proto_out="$OUT_DIR" \
+ --ts_proto_opt=outputServices=grpc-js \
+ --ts_proto_opt=esModuleInterop=true \
+ --proto_path="$PROTO_DIR" \
+ "$PROTO_DIR/jsrunner.proto"

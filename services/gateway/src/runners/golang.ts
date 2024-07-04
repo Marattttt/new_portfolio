@@ -1,6 +1,6 @@
 import * as grpc from '@grpc/grpc-js'
-import { GoCode, GoRunner, RunResult } from './runners'
-import { GoRunnerClient, RunGoRequest } from '../protogen/gorunner'
+import { GoCode, GoRunner, RunResult } from './common'
+import { GoRunRequest, GoRunnerClient } from '../protogen/gorunner'
 
 export class GoRunnerGrpc implements GoRunner {
 	private url: string
@@ -9,11 +9,11 @@ export class GoRunnerGrpc implements GoRunner {
 		this.url = runnerServiceUrl
 	}
 
-	async run(code: GoCode): Promise<RunResult> {
+	async runGo(code: GoCode): Promise<RunResult> {
 		return new Promise<RunResult>((resolve, reject) => {
 			const client = new GoRunnerClient(this.url, grpc.credentials.createInsecure())
 
-			const request: RunGoRequest = { code: code.code }
+			const request: GoRunRequest = { code: code.code }
 
 			client.runGo(request, (error, response) => {
 				if (error) {
