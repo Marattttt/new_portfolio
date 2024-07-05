@@ -17,22 +17,22 @@ type RunRequest struct {
 }
 
 type RunResult struct {
-	Output   []byte
+	Output   string
 	ExitCode int
-	Err      []byte
+	Err      string
 }
 
 // Formats the result in a human-readable format
 func (r RunResult) String() string {
 	output := ""
-	if r.Output != nil {
+	if r.Output != "" {
 		output += fmt.Sprintf("Output: `%s`; ", string(r.Output))
 	}
 
 	exitcode := fmt.Sprintf("Exit Code: %d; ", r.ExitCode)
 
 	errout := ""
-	if r.Err != nil {
+	if r.Err != "" {
 		errout = fmt.Sprintf("Error: %s", string(r.Err))
 	}
 
@@ -40,7 +40,7 @@ func (r RunResult) String() string {
 }
 
 type NodeRunner interface {
-	NodeRun(context.Context, []byte) (io.ReadCloser, io.ReadCloser, error)
+	NodeRun(context.Context, string) (io.Reader, io.Reader, error)
 }
 
 type LocalRunner struct {
@@ -49,11 +49,11 @@ type LocalRunner struct {
 	node   NodeRunner
 }
 
-func NewLocal(logger *slog.Logger, conf *config.Runtime) LocalRunner {
+func NewLocal(logger *slog.Logger, conf *config.Runtime, node NodeRunner) LocalRunner {
 	return LocalRunner{
 		Conf:   conf,
 		Logger: logger,
-		node:   LocalNode{},
+		node:   node,
 	}
 }
 
@@ -71,10 +71,7 @@ func (lr LocalRunner) RunJsReader(ctx context.Context, r io.Reader) (RunResult, 
 
 	lr.Logger.Debug("Received code", slog.String("code", string(code)))
 
-	timedCtx, cancel := context.WithTimeout(ctx, lr.Conf.RunTimeout)
-	defer cancel()
-
-	out, errout, err := lr.node.NodeRun(timedCtx, code)
+	out, errout, err := lr.node.NodeRun(ctx, string(code))
 	if err != nil {
 		return RunResult{}, fmt.Errorf("node: %w", err)
 	}
@@ -85,8 +82,8 @@ func (lr LocalRunner) RunJsReader(ctx context.Context, r io.Reader) (RunResult, 
 	}
 
 	return RunResult{
-		Output: outData,
-		Err:    errData,
+		Output: string(outData),
+		Err:    string(errData),
 	}, nil
 }
 

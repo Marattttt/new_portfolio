@@ -17,6 +17,13 @@ func NewApp(ctx context.Context) (*App, error) {
 	return &app, nil
 }
 
+func DefaultConfig() *App {
+	return &App{
+		Runtime: Runtime{RunTimeout: time.Second * 10},
+		Server:  Server{Port: 3002},
+	}
+}
+
 type App struct {
 	Runtime
 	Server

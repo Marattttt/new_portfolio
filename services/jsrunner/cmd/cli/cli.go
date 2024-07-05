@@ -17,7 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	runner := runners.NewLocal(slog.Default(), &conf.Runtime)
+	runner := runners.NewLocal(slog.Default(), &conf.Runtime, runners.LocalNode{})
 
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 	result, err := runner.RunJsReader(context.Background(), os.Stdin)

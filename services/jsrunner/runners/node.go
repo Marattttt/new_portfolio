@@ -10,9 +10,9 @@ import (
 
 type LocalNode struct{}
 
-func (ln LocalNode) NodeRun(ctx context.Context, code []byte) (io.ReadCloser, io.ReadCloser, error) {
+func (ln LocalNode) NodeRun(ctx context.Context, code string) (io.Reader, io.Reader, error) {
 	cmd := exec.CommandContext(ctx, "node")
-	in := bytes.NewReader(code)
+	in := bytes.NewReader([]byte(code))
 	cmd.Stdin = in
 
 	stdout, err := cmd.StdoutPipe()
