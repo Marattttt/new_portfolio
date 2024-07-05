@@ -17,8 +17,8 @@ var ErrInternal = fmt.Errorf("Something went wrong")
 
 func FormatRunResult(res runners.RunResult) *gogen.RunResponse {
 	err := ""
-	if res.Err != nil {
-		err = res.Err.Error()
+	if res.Err != "" {
+		err = res.Err
 	}
 	return &gogen.RunResponse{
 		Error:  err,
@@ -54,10 +54,7 @@ func (s *Server) RunGo(ctx context.Context, req *gogen.RunGoRequest) (*gogen.Run
 
 	formatted := gogen.RunResponse{
 		Output: result.Text,
-	}
-
-	if result.Err != nil {
-		formatted.Error = result.Err.Error()
+		Error:  result.Err,
 	}
 
 	return &formatted, nil
