@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  gorunner:
+    build: 
+      context: ./gorunner
+      dockerfile: Dockerfile
+      # args:
+      #   - ENV_FILE=.env
+    env_file: ./gorunner/.env
+    ports: 
+      - "${HOST_PORT:-3001}:3001"
