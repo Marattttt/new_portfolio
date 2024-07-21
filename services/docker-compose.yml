@@ -4,7 +4,14 @@ services:
   gorunner:
     image: marattttt/new_portfolio:gorunner
     ports:
-      - "${GORUNNER_PORT}:3001"
+      - "${GORUNNER_PORT:-3001}:3001"
+    networks:
+      - runner_net
+
+  jsrunner:
+    image: marattttt/new_portfolio:jsrunner
+    ports:
+      - "${JSRUNNER_PORT:-3002}:3002"
     networks:
       - runner_net
 
@@ -16,7 +23,8 @@ services:
       - "3030:3030"
 
     environment:
-      - GORUNNER_URL=${GORUNNER_URL:-http://gorunner}
+      - GORUNNER_URL=${GORUNNER_URL:-gorunner:3001}
+      - JSRUNNER_URL=${JSRUNNER_URL:-jsrunner:3002}
     networks:
       - runner_net
 
