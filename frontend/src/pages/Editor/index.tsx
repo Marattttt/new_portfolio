@@ -2,6 +2,7 @@ import { ChangeEvent, useRef, useState } from "react"
 import CodeInput from "./CodeInput";
 import Button from "../../components/Button";
 import RunResult from "./RunResult";
+import Selector from "../../components/Selector";
 
 type RunResult = {
 	error?: string
@@ -9,6 +10,10 @@ type RunResult = {
 }
 
 const Editor = () => {
+	const langs = ['go', 'js']
+	const [lang, setLang] = useState(langs[0])
+	const selectLang = (lang: string) => { setLang(lang) };
+
 	const Editor = useRef<HTMLTextAreaElement>(null);
 	const handleInput = (e: ChangeEvent<HTMLTextAreaElement>) => {
 		console.log(e.target.value)
@@ -20,7 +25,7 @@ const Editor = () => {
 		let result: RunResult = {}
 
 		try {
-			const resp = await fetch('http://localhost:3030/', {
+			const resp = await fetch(`http://localhost:3030/${lang}`, {
 				method: 'POST',
 				headers: [
 					['Content-Type', 'application/json'],
@@ -45,6 +50,7 @@ const Editor = () => {
 
 	return <>
 		<h1> This is the code editor </h1>
+		<Selector items={langs} onSelect={(l) => selectLang(l)} />
 		<CodeInput ref={Editor} onChange={(e) => handleInput(e)} />
 		<Button contents="submit" onClick={() => handleSubmit()} />
 		<RunResult error={runResult.error} output={runResult.output} />
