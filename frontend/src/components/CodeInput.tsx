@@ -1,4 +1,5 @@
 import { ChangeEvent, forwardRef, useState } from "react"
+import styles from './CodeInput.module.css'
 
 interface ButtonProps {
 	code?: string;
@@ -12,11 +13,11 @@ const CodeInput = forwardRef<HTMLTextAreaElement, ButtonProps>((props, ref) => {
 		props.onChange(e)
 	}
 
-	return <textarea ref={ref}
+	return <textarea
+		className={`${styles.codeInput}`}
+		ref={ref}
 		defaultValue={props.code}
 		value={code} onChange={(e) => onChange(e)}
-		cols={60}
-		rows={10}
 	/>
 })
 

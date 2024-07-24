@@ -28,6 +28,8 @@ export class JsRunnerGrpc implements JsRunner {
 					error: response.error,
 				}
 
+				console.debug('received code run result', result)
+
 				resolve(result)
 			})
 

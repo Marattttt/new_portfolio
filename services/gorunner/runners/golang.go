@@ -94,7 +94,9 @@ func (lg *LocalGoRunner) runFile(ctx context.Context, file *os.File) (RunResult,
 	}
 
 	if err := cmd.Wait(); err != nil {
-		return RunResult{}, fmt.Errorf("running compiled file: %w", err)
+		if _, ok := err.(*exec.ExitError); !ok {
+			return RunResult{}, fmt.Errorf("running compiled file: %w", err)
+		}
 	}
 
 	return RunResult{Text: string(out), Err: string(errout)}, nil
@@ -110,8 +112,6 @@ func (lg *LocalGoRunner) clearAndLogTempFile(openFile *os.File) {
 	} else {
 		lg.logger.Info("Removed temp file", fname)
 	}
-
-	return
 }
 
 func readAllOutput(out, errout io.Reader) ([]byte, []byte, error) {

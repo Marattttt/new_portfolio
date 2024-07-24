@@ -6,10 +6,10 @@ interface OutputProps {
 }
 
 const RunResult: FC<OutputProps> = ({ output, error }) => {
-	return <div>
+	return <>
 		<p>Output:  {output} </p>
 		{error ? <p style={{ color: "red" }}> Error: {error} </p> : undefined}
-	</div>
+	</>
 }
 
 export default RunResult

@@ -1,19 +1,30 @@
-version: '3.8'
-
 services:
   gorunner:
     image: marattttt/new_portfolio:gorunner
+    build:
+      context: ./gorunner
     ports:
       - "${GORUNNER_PORT:-3001}:3001"
     networks:
       - runner_net
+    develop:
+      watch:
+        - action: rebuild
+          path: ./gorunner
+
 
   jsrunner:
     image: marattttt/new_portfolio:jsrunner
+    build:
+      context: ./jsrunner
     ports:
       - "${JSRUNNER_PORT:-3002}:3002"
     networks:
       - runner_net
+    develop:
+      watch:
+        - action: rebuild
+          path: ./jsrunner
 
   gateway:
     image: marattttt/new_portfolio:gateway
@@ -21,6 +32,18 @@ services:
       context: ./gateway
     ports:
       - "3030:3030"
+    develop:
+      watch:
+        - action: sync
+          path: ./gateway/src/
+          target: /app/src
+          ignore: 
+            - node_modules/
+            - Dockerfile
+        - action: rebuild
+          path: ./gateway/package.json
+        - action: rebuild
+          path: ./gateway/Dockerfile
 
     environment:
       - GORUNNER_URL=${GORUNNER_URL:-gorunner:3001}

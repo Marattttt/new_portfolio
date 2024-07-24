@@ -28,6 +28,8 @@ export class GoRunnerGrpc implements GoRunner {
 					error: response.error,
 				}
 
+				console.debug('received code run result', result)
+
 				resolve(result)
 			})
 

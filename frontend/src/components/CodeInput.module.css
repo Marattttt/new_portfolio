@@ -1,0 +1,26 @@
+.codeInput {
+  height: 100%;
+  width: 100%;
+  min-width: 20rem;
+  min-height: 10rem;
+
+  resize: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.langBtnBox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.langBtn {
+  width: 5rem;
+  padding: 5px;
+}
+
+.selectedLangBtn {
+  font-weight: bold;
+  border-color: #646cff;
+}

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import styles from './Selector.module.css'
+import styles from './CodeInput.module.css'
 
 interface SelectorOpts {
   items: string[]
@@ -7,38 +7,23 @@ interface SelectorOpts {
 }
 
 const Selector = ({ items, onSelect }: SelectorOpts) => {
-  const [selected, setSelected] = useState({ name: items[0], index: 0 });
-  const [isPicking, setIsPicking] = useState(false);
-
-  const togglePicking = () => setIsPicking(!isPicking)
-
-  const select = (index: number) => {
-    setSelected({ name: items[index], index: index })
-    setIsPicking(false)
-    onSelect(items[index])
+  const [selected, setSelected] = useState(items[0]);
+  const handleSelect = (i: string) => {
+    setSelected(i)
+    onSelect(i)
   }
-
   return (
-    <div className={`${styles.container}`}>
-      <div className={`${styles.selected}`} onClick={togglePicking}>
-        {selected.name}
-      </div>
-      {
-        isPicking && (
-          <ul className={`${styles.itemsList}`}>
-            {items.map((item, index) => (
-              <li
-                key={index}
-                className={styles.item}
-                onClick={() => select(index)}
-              >
-                {item}
-              </li>
-            ))}
-          </ul>
-        )
-      }
-    </div >
+    <div className={styles.langBtnBox}>
+      {items.map((item: string) => (
+        <button
+          key={item}
+          className={`${styles.langBtn} ${item === selected ? styles.selectedLangBtn : ''}`}
+          onClick={() => handleSelect(item)}
+        >
+          {item}
+        </button>
+      ))}
+    </div>
   )
 }
 
