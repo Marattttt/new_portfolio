@@ -75,7 +75,10 @@ func (lg *LocalGoRunner) Run(ctx context.Context, code string) (RunResult, error
 
 func (lg *LocalGoRunner) runFile(ctx context.Context, file *os.File) (RunResult, error) {
 	cmd := exec.CommandContext(ctx, "go", "run", file.Name())
+	// cmd := exec.Command("echo", "heheHUHUHUHUHU")
 	cmd.Dir = *lg.conf.GoRunDir
+
+	lg.logger.Info("starting command", slog.String("cmd", cmd.String()))
 
 	stdout := bytes.Buffer{}
 	stderr := bytes.Buffer{}
@@ -87,19 +90,18 @@ func (lg *LocalGoRunner) runFile(ctx context.Context, file *os.File) (RunResult,
 		return RunResult{}, fmt.Errorf("starting to run code: %w", err)
 	}
 
-	// Begin readign while the command runs
-	out, errout, err := readAllOutput(&stdout, &stderr)
-	if err != nil {
-		return RunResult{}, fmt.Errorf("reading code run output: %w", err)
-	}
-
 	if err := cmd.Wait(); err != nil {
+		lg.logger.Warn("error running code", slog.String("err", err.Error()))
 		if _, ok := err.(*exec.ExitError); !ok {
 			return RunResult{}, fmt.Errorf("running compiled file: %w", err)
 		}
+
 	}
 
-	return RunResult{Text: string(out), Err: string(errout)}, nil
+	res := RunResult{Text: stdout.String(), Err: stderr.String()}
+	lg.logger.Info("code result", slog.Any("res", res))
+
+	return res, nil
 }
 
 func (lg *LocalGoRunner) clearAndLogTempFile(openFile *os.File) {

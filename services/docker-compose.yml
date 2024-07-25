@@ -7,6 +7,9 @@ services:
       - "${GORUNNER_PORT:-3001}:3001"
     networks:
       - runner_net
+
+    volumes:
+      - go-modules:/go/pkg/mod
     develop:
       watch:
         - action: rebuild
@@ -25,7 +28,7 @@ services:
       watch:
         - action: rebuild
           path: ./jsrunner
-
+ 
   gateway:
     image: marattttt/new_portfolio:gateway
     build:
@@ -54,3 +57,6 @@ services:
 networks:
   runner_net:
     driver: bridge
+
+volumes:
+  go-modules:

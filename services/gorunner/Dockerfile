@@ -12,5 +12,5 @@ RUN go build -o /app/server ./cmd/server/main.go
 
 WORKDIR /app/runtime
 
-CMD [ "su", "app_user", "-c", "/app/server" ]
+CMD [ "/app/server" ]
 
